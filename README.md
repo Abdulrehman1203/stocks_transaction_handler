@@ -11,6 +11,8 @@ The Stocks Transactions Handler is a django based basic web app,for implementing
 - **User Transactions**: Users can perform buy and sell transactions on specific stocks.
 - **Token-Based Authentication**: Secure API access using JWT tokens.
 - **API Endpoints**: Comprehensive API endpoints for managing users, stocks, and transactions.
+- **SWAGGER UI**: Swagger UI for API documentation, allowing you to interact with the API endpoints easily.
+
 
 ## API Endpoints
 
