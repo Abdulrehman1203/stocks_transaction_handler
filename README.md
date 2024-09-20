@@ -40,6 +40,8 @@ The Stocks Transactions Handler is a django based basic web app,for implementing
 - **Django REST Framework**: 3.14 or later
 - **PostgreSQL**: Database for storing user, stock, and transaction data
 - **PyJWT**: For JWT token management
+- **SWAGGER UI**: For interacting with endpoints
+
 
 ## Completed Features
 
