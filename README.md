@@ -33,6 +33,32 @@ The Stocks Transactions Handler is a django based basic web app,for implementing
 - **`get_transactions`**: Retrieves all transactions for a specific user.
 - **`get_transactions_by_date`**: Fetches transactions for a user within a specified date range.
 
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository_url>
+   cd stocks_transactions_handler
+
+2. **Setup Virtual Environment**:
+   ```bash
+   python -m venv env
+   source env/bin/activate 
+
+3. **Install Required Packages**:
+   ```bash
+   pip install -r requirements.txt
+
+4. **Apply Migrations**:
+   ```bash
+   python manage.py migrate
+
+5. **Run the Development Server**:
+   ```bash
+   python manage.py runserver
+
+
 ## Requirements
 
 - **Python**: 3.10 or later
@@ -51,9 +77,5 @@ The Stocks Transactions Handler is a django based basic web app,for implementing
 
 - JWT authentication and token generation are currently in progress.
 
-## Installation
 
-1. Clone the repository:
-   ```bash
-   git clone <repository_url>
-   cd stocks_transactions_handler
+
