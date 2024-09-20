@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Stocks Transactions Handler is a web application built with Django and Django REST Framework. It provides functionalities for managing stock transactions, including user registration, authentication, and access to stock data.
+The Stocks Transactions Handler is a django based basic web app,for implementing the basic and some advance concepts of django to practice and to get grip on django and DRF
 
 ## Features
 
