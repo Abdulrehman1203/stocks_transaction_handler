@@ -14,24 +14,11 @@ The Stocks Transactions Handler is a django based basic web app,for implementing
 - **SWAGGER UI**: Swagger UI for API documentation, allowing you to interact with the API endpoints easily.
 
 
-## API Endpoints
-
-### User Endpoints
-
-- **`add_user`**: Creates a new user in the system.
-- **`get_user_by_username`**: Retrieves user details by username.
-
-### Stock Endpoints
-
-- **`add_stock`**: Adds a new stock to the system.
-- **`get_stock`**: Retrieves stock details by ticker symbol.
-- **`get_all_stocks`**: Fetches a list of all stocks in the database.
-
-### Transaction Endpoints
-
-- **`add_transaction`**: Creates a new transaction for a user and a stock.
-- **`get_transactions`**: Retrieves all transactions for a specific user.
-- **`get_transactions_by_date`**: Fetches transactions for a user within a specified date range.
+## Techs Used
+- Django
+- Django REST Framework
+- DRF-YASG for Swagger documentation
+- PostgreSQL 
 
 
 ## Installation
