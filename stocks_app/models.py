@@ -2,7 +2,7 @@ from django.utils import timezone
 from django.db import models
 
 
-class User(models.Model):
+class users(models.Model):
     """
     This model stores basic information about the user, including their username
     and balance. Each user can have multiple transactions associated with them.
@@ -56,7 +56,7 @@ class Transaction(models.Model):
         (BUY, 'buy'),
         (SELL, 'sell'),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(users, on_delete=models.CASCADE)
     ticker = models.ForeignKey(Stock, on_delete=models.CASCADE)
     transaction_type = models.CharField(max_length=5, choices=Transaction_type)
     transaction_volume = models.IntegerField()

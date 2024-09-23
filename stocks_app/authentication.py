@@ -2,55 +2,72 @@ import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.http import JsonResponse
 from django.contrib.auth.models import User
-from rest_framework.exceptions import AuthenticationFailed
+from functools import wraps
+
+# Define your secret key and algorithm
+SECRET_KEY = settings.SECRET_KEY  # Use `settings.SECRET_KEY` in production.
+ALGORITHM = 'HS256'
 
 
-def generate_jwt_token(user):
+# Generate a JWT token
+def generate_jwt(user):
     payload = {
-        'id': user.pk,
+        'user_id': user.id,
         'username': user.username,
-        'exp': datetime.utcnow() + timedelta(minutes=360),
-        'iat': datetime.utcnow()
+        'exp': datetime.utcnow() + timedelta(minutes=360)  # Token expires in 1 hour
     }
-    token = jwt.encode(payload, settings.SIMPLE_JWT['SIGNING_KEY'], algorithm=settings.SIMPLE_JWT['ALGORITHM'])
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token
 
 
-def authenticate_user(username):
+# Decode and verify the JWT token
+def decode_jwt(token):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+
+# Custom authentication function
+def user_authentication(username, password):
     """
     Authenticates the user and returns a JWT token if successful.
     """
-    user = authenticate(username=username)
+    user = authenticate(username=username, password=password)
     if user is not None:
-        token = generate_jwt_token(user)
+        token = generate_jwt(user)
         return token
     return None
 
 
-def decode_jwt_token(token):
-    try:
-        payload = jwt.decode(token, settings.SIMPLE_JWT['SIGNING_KEY'], algorithms=[settings.SIMPLE_JWT['ALGORITHM']])
-        user = User.objects.get(id=payload['id'])
-        return user
-    except (jwt.ExpiredSignatureError, jwt.DecodeError, User.DoesNotExist):
-        raise AuthenticationFailed('Invalid or expired token')
-
-
 def jwt_required(view_func):
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        token = request.headers.get('Authorization')  # Use token from the Authorization header
+        # Try to extract token from the Authorization header
+        auth_header = request.headers.get('Authorization')
+        token = None
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+        else:
+            # Fallback to query parameter
+            token = request.GET.get('token')
         if not token:
-            raise AuthenticationFailed('Token is missing')
+            return JsonResponse({'error': 'Token missing'}, status=401)
+        # Decode and verify token
+        payload = decode_jwt(token)
+        if not payload:
+            return JsonResponse({'error': 'Invalid or expired token'}, status=401)
 
         try:
-            user = decode_jwt_token(token)  # Decode token and validate
-            request.user = user  # Attach user to request
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Token has expired')
-        except jwt.DecodeError:
-            raise AuthenticationFailed('Token is invalid')
-
+            user = User.objects.get(id=payload['user_id'])
+            request.user = user
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
         return view_func(request, *args, **kwargs)
 
     return wrapper
