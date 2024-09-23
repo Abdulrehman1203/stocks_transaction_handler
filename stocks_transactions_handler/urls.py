@@ -19,25 +19,26 @@ from django.urls import path, include
 import stocks_app
 from stocks_app import urls
 from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework.authtoken import views as auth_views
 
 schema_view = get_schema_view(
-    openapi.Info(
-        title="My API",
-        default_version='v1',
-        description="My STOCK_TRADING_APP description",
-
-    ),
+   openapi.Info(
+      title="Stocks Api",
+      default_version='v1',
+      description="My API for handling users, stocks, and transactions",
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
 )
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", include(stocks_app.urls)),
 
     path('stocks_app/', include('django.contrib.auth.urls')),
-    # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # path('api-token-auth/', auth_views.obtain_auth_token),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
@@ -45,3 +46,5 @@ urlpatterns = [
 
 
 ]
+
+

@@ -1,49 +1,63 @@
+from .models import users, Stock, Transaction
+from .forms import RegisterForm
+from .authentication import jwt_required, generate_jwt
+from .serializers import usersSerializer, StockSerializer, TransactionSerializer, registerSerializer
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from .models import User, Stock, Transaction
-from .serializers import UserSerializer, StockSerializer, TransactionSerializer
 from rest_framework.decorators import api_view, permission_classes
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+from drf_yasg.utils import swagger_auto_schema
 from datetime import datetime
-from .authentication import jwt_required, authenticate_user
-from .authentication import generate_jwt_token
+from django.contrib.auth import authenticate
 
 
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def register(request):
-#     username = request.data.get('username')
-#     password = request.data.get('password1')
-#
-#     if User.objects.filter(username=username).exists():
-#         return Response({'error': 'Username already taken'}, status=status.HTTP_400_BAD_REQUEST)
-#
-#     # Create the user instance without the password first
-#     user = User.objects.create(
-#         username=username,
-#     )
-#
-#     # Set and hash the password separately
-#     user.set_password(password)
-#     user.save()
-#
-#     # Generate JWT token
-#     token = generate_jwt_token(user)
-#     return Response({"message": "User registered successfully", "token": token}, status=status.HTTP_201_CREATED)
-#
-#
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def user_login(request):
-#     username = request.data.get('username')
-#
-#     token = authenticate_user(username)
-#     if token:
-#         request.session['token'] = token
-#
-#     else:
-#         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+@swagger_auto_schema(method='post', request_body=registerSerializer)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    if request.method == 'POST':
+        form = RegisterForm(request.data)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
 
+            if User.objects.filter(username=username).exists():
+                return Response({'error': 'Username already taken'}, status=status.HTTP_400_BAD_REQUEST)
+
+            user = User.objects.create(
+                username=username,
+                password=make_password(password)
+            )
+
+            token = generate_jwt(user)
+            return Response({"message": "User registered successfully", "token": token}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    else:
+        return Response({" Invalid request to register."}, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(method='post', request_body=registerSerializer)
+@api_view(['POST'])
+def user_login(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    user = authenticate(request, username=username, password=password)
+
+    if user is None:
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+    token = generate_jwt(user)  # Make sure generate_jwt is defined
+
+    return Response({"token": token}, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(method='post', request_body=usersSerializer)
+@permission_classes([AllowAny])
 @api_view(['POST'])
 def add_user(request):
     """
@@ -52,7 +66,7 @@ def add_user(request):
     the user to the database if valid.
     """
     if request.method == 'POST':
-        serializer = UserSerializer(data=request.data)
+        serializer = usersSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -60,73 +74,85 @@ def add_user(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(method='GET')
+@permission_classes([AllowAny])
 @api_view(['GET'])
 def get_user_by_username(request, username):
     """
-    This view GET a user  from the database based on the provided username
+    This view GET a user from the database based on the provided username
     it returns the user data.
     """
-    if request.method == 'GET':
-        user = User.objects.get(username=username)
-        serializer = UserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    user = users.objects.get(username=username)
+    serializer = usersSerializer(user)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@swagger_auto_schema(method='post', request_body=StockSerializer)
 @api_view(['POST'])
+@jwt_required
 def add_stock(request):
     """
     This view handles the creation of a new stock using the `POST` method.
     It validates the incoming data through the serializer and saves
-    the stock.
+    the stock. Requires JWT authentication.
     """
-    if request.method == 'POST':
-        serializer = StockSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer = StockSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(method='GET')
+@permission_classes([AllowAny])
 @api_view(['GET'])
 def get_stock(request, ticker):
     """
     This view GET a stock from the database based on the provided ticker
-    and returns the stock data.
+    and returns the stock data. Requires JWT authentication.
     """
-    if request.method == 'GET':
-        stock = Stock.objects.get(ticker=ticker)
-        serializer = StockSerializer(stock)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    stock = Stock.objects.get(ticker=ticker)
+    serializer = StockSerializer(stock)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@swagger_auto_schema(method='GET')
+@permission_classes([AllowAny])
 @api_view(['GET'])
 def get_all_stocks(request):
     """
     This view GET stocks from the database and returns them.
+    Requires JWT authentication.
     """
-    if request.method == 'GET':
-        stocks = Stock.objects.all()
-        serializer = StockSerializer(stocks, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    stocks = Stock.objects.all()
+    serializer = StockSerializer(stocks, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@swagger_auto_schema(method='post', request_body=TransactionSerializer)
 @api_view(['POST'])
+@jwt_required
 def add_transaction(request):
     """
     This view handles the creation of a new transaction using the `POST` method.
     It verifies the user and stock, calculates the transaction price, and updates
     the user's balance accordingly before saving the transaction.
     """
-
-    username = request.data.get('username')
+    user_id = request.data.get('user')
     ticker = request.data.get('ticker')
     transaction_type = request.data.get('transaction_type')
     transaction_volume = request.data.get('transaction_volume')
 
+    print("user_id =", user_id, "type:", type(user_id))  # for debugging purpose
+    print("ticker =", ticker, "type:", type(ticker))  # for debugging purpose
+
+    if user_id is None or ticker is None:
+        return Response({"error": "User ID and ticker are required."}, status=400)
+
     try:
-        user = User.objects.get(username=username)
-        stock = Stock.objects.get(ticker=ticker)
-    except User.DoesNotExist:
+        user = users.objects.get(pk=user_id)
+        stock = Stock.objects.get(pk=ticker)
+    except users.DoesNotExist:
         return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
     except Stock.DoesNotExist:
         return Response({"error": "Stock not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -146,7 +172,7 @@ def add_transaction(request):
 
     transaction_data = {
         'user': user.id,
-        'ticker': stock.id,
+        'ticker': stock.id,  # Ensure this is the primary key
         'transaction_type': transaction_type,
         'transaction_volume': transaction_volume,
         'transaction_price': transaction_price
@@ -160,17 +186,19 @@ def add_transaction(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(method='GET')
+@permission_classes([AllowAny])
 @api_view(['GET'])
 def get_transactions_by_date(request, username, start_time, end_time):
     """
     This view fetches transactions for a user between two dates, using the
-    `GET` method.
+    `GET` method. Requires JWT authentication.
     """
     try:
         start_date = datetime.strptime(start_time, '%Y-%m-%d')
         end_date = datetime.strptime(end_time, '%Y-%m-%d')
 
-        user = User.objects.get(username=username)
+        user = users.objects.get(username=username)
 
         transactions = Transaction.objects.filter(
             user=user,
@@ -181,18 +209,20 @@ def get_transactions_by_date(request, username, start_time, end_time):
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    except User.DoesNotExist:
+    except users.DoesNotExist:
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     except ValueError:
         return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@swagger_auto_schema(method='GET')
+@permission_classes([AllowAny])
 @api_view(['GET'])
 def get_transactions(request, username):
     """
     This view fetches all transactions for a specific user using the `GET` method.
+    Requires JWT authentication.
     """
-    if request.method == 'GET':
-        transactions = Transaction.objects.filter(user__username=username)
-        serializer = TransactionSerializer(transactions, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    transactions = Transaction.objects.filter(user__username=username)
+    serializer = TransactionSerializer(transactions, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
