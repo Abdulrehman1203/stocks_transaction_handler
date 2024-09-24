@@ -3,15 +3,14 @@ from . import views
 from .views import *
 
 urlpatterns = [
-    path('auth/login/', user_login, name='user_login'),
-    path('register/', views.register, name='register'),
-    path('adduser/', views.add_user, name='add user'),
-    path('user/<str:username>/', views.get_user_by_username, name='user_by_username'),
-    path('addstocks/', views.add_stock, name='add stocks'),
-    path('stocks/<str:ticker>/', views.get_stock, name='get stocks by ticker'),
-    path('all/stocks', views.get_all_stocks, name='all stocks'),
-    path('addtransaction/', views.add_transaction, name='add transaction'),
-    path('transactions/<str:username>/', views.get_transactions, name='get transactions by username'),
-    path('transactions/<str:username>/<str:start_timestamp>/<str:end_timestamp>/', views.get_transactions_by_date),
-
+    path('register/', User_RegisterView.as_view(), name='register'),
+    path('login/', User_LoginView.as_view(), name='login'),
+    path('add-user/', Add_UserView.as_view(), name='add_user'),
+    path('user/<str:username>/', GetUser_ByUsernameView.as_view(), name='get_user_by_username'),
+    path('add-stock/', Add_StockView.as_view(), name='add_stock'),
+    path('stock/<str:ticker>/', Get_StockView.as_view(), name='get_stock'),
+    path('stocks/', Get_AllStocksView.as_view(), name='get_all_stocks'),
+    path('add-transaction/', Add_TransactionView.as_view(), name='add_transaction'),
+    path('transactions/<str:username>/<str:start_time>/<str:end_time>/', Get_TransactionsByDateView.as_view()),
+    path('transactions/<str:username>/', Get_TransactionsView.as_view(), name='get_transactions')
 ]
