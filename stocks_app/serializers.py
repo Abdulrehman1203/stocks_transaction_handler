@@ -11,13 +11,7 @@ class usersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = users
-        fields = ['username', 'balance']
-
-    # def create(self, validated_data):
-    #     user = User(**validated_data)
-    #     user.set_password(validated_data['password'])  # Hash the password
-    #     user.save()
-    #     return user
+        fields = ['id', 'username', 'balance', ]
 
 
 class StockSerializer(serializers.ModelSerializer):
@@ -25,6 +19,7 @@ class StockSerializer(serializers.ModelSerializer):
     This serializer handles the `ticker` and `price` fields of the stock, which can be used
     for creating or retrieving stock data through API requests.
     """
+
     class Meta:
         model = Stock
         fields = ['ticker', 'price']

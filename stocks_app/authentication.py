@@ -6,8 +6,7 @@ from django.http import JsonResponse
 from django.contrib.auth.models import User
 from functools import wraps
 
-# Define your secret key and algorithm
-SECRET_KEY = settings.SECRET_KEY  # Use `settings.SECRET_KEY` in production.
+SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = 'HS256'
 
 
@@ -16,7 +15,7 @@ def generate_jwt(user):
     payload = {
         'user_id': user.id,
         'username': user.username,
-        'exp': datetime.utcnow() + timedelta(minutes=360)  # Token expires in 1 hour
+        'exp': datetime.utcnow() + timedelta(hours=12)
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token
@@ -48,17 +47,15 @@ def user_authentication(username, password):
 def jwt_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        # Try to extract token from the Authorization header
         auth_header = request.headers.get('Authorization')
         token = None
         if auth_header and auth_header.startswith('Bearer '):
             token = auth_header.split(' ')[1]
         else:
-            # Fallback to query parameter
             token = request.GET.get('token')
         if not token:
             return JsonResponse({'error': 'Token missing'}, status=401)
-        # Decode and verify token
+
         payload = decode_jwt(token)
         if not payload:
             return JsonResponse({'error': 'Invalid or expired token'}, status=401)
