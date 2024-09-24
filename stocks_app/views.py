@@ -166,7 +166,8 @@ class Get_StockView(APIView):
         @:param ticker : which represents the stock symbol
 
     """
-
+    
+    @method_decorator(jwt_required)
     @swagger_auto_schema()
     def get(self, request, ticker):
         try:
@@ -191,6 +192,7 @@ class Get_AllStocksView(APIView):
     """
 
     @swagger_auto_schema()
+    @method_decorator(jwt_required)
     def get(self, request):
         stocks = Stock.objects.all()
         serializer = StockSerializer(stocks, many=True)
@@ -278,6 +280,7 @@ class Get_TransactionsByDateView(APIView):
     """
 
     @swagger_auto_schema()
+    @method_decorator(jwt_required)
     def get(self, request, username, start_time, end_time):
         try:
             start_date = datetime.strptime(start_time, '%Y-%m-%d')
@@ -315,6 +318,7 @@ class Get_TransactionsView(APIView):
     """
 
     @swagger_auto_schema()
+    @method_decorator(jwt_required)
     def get(self, request, username):
         transactions = Transaction.objects.filter(user__username=username)
         serializer = TransactionSerializer(transactions, many=True)
