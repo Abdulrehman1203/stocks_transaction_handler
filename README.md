@@ -25,7 +25,7 @@ The Stocks Transactions Handler is a django based basic web app,for implementing
 
 1. Clone the repository:
    ```bash
-   git clone <repository_url>
+   git clone https://github.com/Abdulrehman1203/stocks_transaction_handler.git
    cd stocks_transactions_handler
 
 2. **Setup Virtual Environment**:
