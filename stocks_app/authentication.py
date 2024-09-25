@@ -9,8 +9,9 @@ from functools import wraps
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = 'HS256'
 
+""" Generates the JWT token."""
 
-# Generate a JWT token
+
 def generate_jwt(user):
     payload = {
         'user_id': user.id,
@@ -21,8 +22,13 @@ def generate_jwt(user):
     return token
 
 
-# Decode and verify the JWT token
+""" Decodes the generated JWT token."""
+
+
 def decode_jwt(token):
+    """
+    Authenticates the user and returns a JWT token if successful.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
@@ -32,11 +38,10 @@ def decode_jwt(token):
         return None
 
 
-# Custom authentication function
+""" Authenticates the user and returns a JWT token if successful."""
+
+
 def user_authentication(username, password):
-    """
-    Authenticates the user and returns a JWT token if successful.
-    """
     user = authenticate(username=username, password=password)
     if user is not None:
         token = generate_jwt(user)
@@ -44,11 +49,14 @@ def user_authentication(username, password):
     return None
 
 
+""" Creating a JWT decorator which will add on func to restrict the func for only authenticated users"""
+
+
 def jwt_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         auth_header = request.headers.get('Authorization')
-        token = None
+
         if auth_header and auth_header.startswith('Bearer '):
             token = auth_header.split(' ')[1]
         else:

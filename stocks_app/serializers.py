@@ -47,5 +47,10 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 
 class registerSerializer(serializers.Serializer):
+    """
+    This serializer includes fields username and password to validate the
+    user registration credentials.
+
+    """
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True)

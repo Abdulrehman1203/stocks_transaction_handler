@@ -31,7 +31,6 @@ class Stock(models.Model):
     price = models.FloatField()
 
     def __str__(self):
-
         return self.ticker
 
 
