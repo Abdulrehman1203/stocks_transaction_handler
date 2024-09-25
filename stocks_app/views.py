@@ -166,6 +166,7 @@ class Get_StockView(APIView):
         @:param ticker : which represents the stock symbol
 
     """
+
     @method_decorator(jwt_required)
     @swagger_auto_schema()
     def get(self, request, ticker):
